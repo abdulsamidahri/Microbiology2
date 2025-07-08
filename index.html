@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiology School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add jsPDF library for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Authentication Check -->
+    <script>
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <!-- Logo/Brand -->
+                <div class="flex items-center">
+                    <img src="images/logo.png" alt="Microbiology Logo" class="w-12 h-12 mr-3">
+                    <h1 class="nav-brand">Microbiology School Management System</h1>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex nav-links">
+                    <a href="#" class="nav-link" onclick="showDashboard()">Dashboard</a>
+                    <a href="#" class="nav-link" onclick="showStudents()">Students</a>
+                    <a href="#" class="nav-link" onclick="showTeachers()">Teachers</a>
+                    <a href="#" class="nav-link" onclick="showClasses()">Classes</a>
+                    <a href="#" class="nav-link" onclick="showAttendance()">Attendance</a>
+                    <a href="#" class="nav-link" onclick="showReports()">Reports</a>
+                    <a href="#" class="nav-link" onclick="logout()">Logout</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden mobile-menu-button" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-16 6h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu hidden md:hidden">
+            <a href="#" class="mobile-nav-link" onclick="showDashboard()">Dashboard</a>
+            <a href="#" class="mobile-nav-link" onclick="showStudents()">Students</a>
+            <a href="#" class="mobile-nav-link" onclick="showTeachers()">Teachers</a>
+            <a href="#" class="mobile-nav-link" onclick="showClasses()">Classes</a>
+            <a href="#" class="mobile-nav-link" onclick="showAttendance()">Attendance</a>
+            <a href="#" class="mobile-nav-link" onclick="showReports()">Reports</a>
+            <a href="#" class="mobile-nav-link" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto mt-6 p-4">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="space-y-6">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-2">Total Students</h3>
+                    <p class="text-3xl font-bold text-blue-600">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-2">Total Teachers</h3>
+                    <p class="text-3xl font-bold text-green-600">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-2">Total Classes</h3>
+                    <p class="text-3xl font-bold text-purple-600">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-2">Attendance Rate</h3>
+                    <p class="text-3xl font-bold text-yellow-600">0%</p>
+                </div>
+            </div>
+
+            <!-- Class Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="classCards">
+                <!-- Class cards will be added here dynamically -->
+            </div>
+        </section>
+
+        <!-- Students Section -->
+        <section id="students" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Students Management</h2>
+                    <div class="flex space-x-4">
+                        <div class="relative">
+                            <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVUpload(event)">
+                            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick="document.getElementById('csvFileInput').click()">
+                                Upload CSV
+                            </button>
+                        </div>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="showAddStudentForm()">
+                            Add New Student
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Student rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Teachers Section -->
+        <section id="teachers" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Teachers Management</h2>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="showAddTeacherForm()">
+                        Add New Teacher
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Class</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Teacher rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Classes Section -->
+        <section id="classes" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Classes Management</h2>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="showAddClassForm()">
+                        Add New Class
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Class rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Attendance Section -->
+        <section id="attendance" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Attendance Management</h2>
+                    <div class="flex space-x-4">
+                        <input type="date" id="attendanceDate" class="border rounded px-3 py-2">
+                        <select id="attendanceClass" class="border rounded px-3 py-2">
+                            <option value="">Select Class</option>
+                        </select>
+                        <select id="attendanceSubject" class="border rounded px-3 py-2">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Class Info Display -->
+                <div id="classInfo" class="mb-6 hidden">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="font-semibold">Teacher:</span>
+                                <span id="teacherDisplay"></span>
+                            </div>
+                            <div>
+                                <span class="font-semibold">Total Students:</span>
+                                <span id="totalStudentsDisplay"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Attendance rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No Students Message -->
+                <div id="noStudentsMessage" class="hidden text-center py-8 text-gray-500">
+                    No students found in this class
+                </div>
+
+                <!-- Submit Button and Success Message -->
+                <div class="mt-6 flex flex-col items-center">
+                    <button id="submitAttendance" onclick="submitAttendance()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Submit Attendance
+                    </button>
+                    <div id="attendanceSuccessMessage" class="hidden mt-4 text-green-600 bg-green-100 px-4 py-2 rounded-lg">
+                        Attendance submitted successfully!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-6">Reports</h2>
+                
+                <!-- Report Options Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <!-- Department Summary -->
+                    <div class="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="generateDepartmentReport()">
+                        <h3 class="text-xl font-semibold mb-2">Department Summary</h3>
+                        <p class="text-gray-600">View overall statistics and performance by department</p>
+                    </div>
+
+                    <!-- Class-wise Attendance -->
+                    <div class="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="generateClassAttendanceReport()">
+                        <h3 class="text-xl font-semibold mb-2">Class-wise Attendance</h3>
+                        <p class="text-gray-600">Detailed attendance reports for each class</p>
+                    </div>
+
+                    <!-- Subject-wise Attendance -->
+                    <div class="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="generateSubjectAttendanceReport()">
+                        <h3 class="text-xl font-semibold mb-2">Subject-wise Attendance</h3>
+                        <p class="text-gray-600">View attendance reports filtered by subject for each class</p>
+                    </div>
+
+                    <!-- Student-wise Report -->
+                    <div class="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="generateStudentReport()">
+                        <h3 class="text-xl font-semibold mb-2">Student-wise Report</h3>
+                        <p class="text-gray-600">Individual student performance and attendance reports</p>
+                    </div>
+
+                    <!-- Export/Download -->
+                    <div class="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="exportReports()">
+                        <h3 class="text-xl font-semibold mb-2">Export Reports</h3>
+                        <p class="text-gray-600">Download reports in various formats (PDF, Excel)</p>
+                    </div>
+                </div>
+
+                <!-- Report Display Area -->
+                <div id="reportDisplay" class="mt-8 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold" id="reportTitle">Report Title</h3>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="downloadReport()">
+                            Download Report
+                        </button>
+                    </div>
+                    <div id="reportContent" class="bg-gray-50 p-4 rounded-lg">
+                        <!-- Report content will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html> 

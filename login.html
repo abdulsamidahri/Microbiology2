@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+        <div class="flex justify-center mb-4">
+            <img src="images/logo.png" alt="Microbiology Logo" class="w-32 h-32 object-contain">
+        </div>
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">School Management System</h1>
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" class="form-input" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" class="form-input" required>
+            </div>
+            <div id="errorMessage" class="text-red-500 text-sm hidden">
+                Invalid username or password
+            </div>
+            <button type="submit" class="btn-primary w-full">Login</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Check credentials
+            if (username === 'admin' && password === 'admin123') {
+                // Set login status in localStorage
+                localStorage.setItem('isLoggedIn', 'true');
+                // Redirect to main page
+                window.location.href = 'index.html';
+            } else {
+                // Show error message
+                errorMessage.classList.remove('hidden');
+                // Clear password field
+                document.getElementById('password').value = '';
+            }
+        });
+
+        // Check if already logged in
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html> 
